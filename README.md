@@ -3,7 +3,8 @@ A collection of ASCII terminal mini-games written in Python with `curses`.
 Work in progress 
 
 ## Status
-🚧 Under construction — first game (snake-like) in progress
+- snake - ready 
+- second game in progress
 
 ## Requirements
 - Python 3.x

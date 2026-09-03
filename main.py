@@ -10,62 +10,52 @@ def main(stdscr):
     my, mx = stdscr.getmaxyx()
     py = my // 2
     px = mx // 2
-    rx = random.randint(1, mx - 3)
-    ry = random.randint(1, my - 3)
+    snake = [[py,px]]
+    rx = random.randint(3, mx - 3)
+    ry = random.randint(3, my - 3)
     score = 0
-    dir = 0
     curses.init_pair(1,curses.COLOR_GREEN, curses.COLOR_BLACK)
+    def step():
+        for j in range(len(snake)-1 , 0 , -1):
+            snake[j] = snake[j - 1]
     while True:
-        stdscr.border()
         stdscr.erase()
+        stdscr.border()
         key = stdscr.getch()
         if key == ord("w"):
-            py = max(2, py -1)
-            dir = 0
+            step()
+            py = max(1, py -1)
         if key == ord("s"):
-            py = min(my-2, py +1)
-            dir = 2
+            step()
+            py = min(my-1, py +1)
         if key == ord("a"):
-            px = max(2, px -1)
-            dir = 3
+            step()
+            px = max(1, px -1)
         if key == ord("d"):
-            px = min(mx-2, px +1)
-            dir = 1
+            step()
+            px = min(mx-1, px +1)
         if key == ord("q"):
             return
         try:
             stdscr.addstr(py,px, "●", curses.color_pair(1))
         except curses.error:
-            pass
-        for i in range(1, score):
-            if dir == 0:
-                try:
-                    stdscr.addstr(py +i,px,"●",curses.color_pair(1))
-                except curses.error:
-                    pass
-            elif dir == 2:
-                try:
-                    stdscr.addstr(py -i,px,"●",curses.color_pair(1))
-                except curses.error:
-                    pass
-            elif dir == 1:
-                try:
-                    stdscr.addstr(py,px+i,"●", curses.color_pair(1))
-                except curses.error:
-                    pass
-            elif dir == 3:
-                try:
-                    stdscr.addstr(py,px-i,"●", curses.color_pair(1))
-                except curses.error :
-                    pass
+             pass
         try:
             stdscr.addstr(ry,rx,"o")
         except curses.error :
             pass
+        for k in range(score):
+            stdscr.addstr(snake[k][0], snake[k][1], "●", curses.color_pair(1))
         if (py,px) == (ry,rx):
+            score += 1
             rx = random.randint(1, mx - 3)
             ry = random.randint(1, my - 3)
-            score += 1
+            snake.append([])
+        snake[0] = [py,px]
+        if snake[score-1][0] == my-1 or snake[score-1][1] == mx -1 or snake[score-1][0] == 1 or snake[score-1][1] == 1:
+            return
+        if score == (mx - 2) * (my - 2) - 20 :
+            return
         stdscr.refresh()
         time.sleep(1/30)
 
