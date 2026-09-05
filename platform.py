@@ -12,41 +12,47 @@ def main(stdscr):
     floor = my - 3
     frames = 0
     jump = 0
+    enemyx = random.randint(3,mx-3)
+    enemyy = my - 8
     old_x = 0
     old_y = 0
     oldxx = 0
     oldxy = 0
+    oldenemyx = 0
+    oldenemyy = 0
     xx = 0
     xy = 0
     shot = False
     curses.init_pair(1,curses.COLOR_GREEN, curses.COLOR_BLACK)
     mapa = [[0 for i in range(mx)] for j_ in range(my) ]
     block1x = random.randint(3,mx - 3)
-    block1y = random.randint(my - 8,my - 3)
+    block1y = my -2  #random.randint(my - 8,my - 3)
     block2x = random.randint(3,mx - 3)
     block2y = random.randint(my // 3,my - 3)
     while True:
         stdscr.erase()
         stdscr.border()
         key = stdscr.getch()
-        if key == ord("a"):
+        if key == ord("a") and mapa[py][px-1] == 0:
             px = max(2, px-1)
-        if key == ord("d"):
+        if key == ord("d") and mapa[py][px+1] == 0:
             px = min(mx-2, px+1)
         if key == ord(" ") and jump < 3:
             py -= 10
             jump += 1
-        if key == ord("x"):
+        if key == curses.KEY_RIGHT:
             xx = px + 1
             xy = py
             shot = True
         if key == ord("q"):
             return
-        if mapa[py+1][px] == 0 and frames != 0:
+        if mapa[py+1][px] == 0 and frames not in [0,1,2]:
             py += 1
-            frames = 0
-        if py == floor -1:
+        if enemyy < my-1 and mapa[enemyy+1][enemyx] == 0 and frames not in [0,1,2]:
+            enemyy += 1
+        if py == floor -1 or mapa[py+1][px] != 0:
             jump = 0
+        mapa[enemyy][enemyx] = 5
         mapa[block1y][block1x] = 3
         mapa[block2y][block2x] = 3
         mapa[floor] = [1 for n in range(mx)]
@@ -64,6 +70,8 @@ def main(stdscr):
                         stdscr.addstr(y,x, "@")
                     elif mapa[y][x] == 4:
                         stdscr.addstr(y,x, ".")
+                    elif mapa[y][x] == 5:
+                        stdscr.addstr(y,x, "!")
                 except curses.error :
                     pass
         if shot:
@@ -72,13 +80,30 @@ def main(stdscr):
             shot = False
         mapa[oldxy][oldxx] = 0
         mapa[old_y][old_x] = 0
+        mapa[oldenemyy][oldenemyx] = 0
         if xx == mx - 1:
             shot = False
-        frames += 1
         oldxx = xx
         oldxy = xy
         old_x = px
         old_y = py
+        oldenemyy = enemyy
+        oldenemyx = enemyx
+        if px < enemyx and frames == 3 and mapa[enemyy][enemyx -1] == 0:
+            enemyx = min(mx-3,enemyx - 1 )
+        elif px > enemyx and frames == 3 and mapa[enemyy][enemyx +1] == 0:
+            enemyx = max(3,enemyx + 1 )
+        if mapa[enemyy][enemyx +1] in [2,3,4] or mapa[enemyy][enemyx -1] in [2,3,4]:
+            enemyy -= 5
+            if mapa[enemyy][enemyx +1] in [2,3,4]:
+                enemyx = min(mx - 2, enemyx +1)
+            if mapa[enemyy][enemyx -1] in [2,3,4]:
+                enemyx = max(2, enemyx -1)
+
+        if frames == 4:
+            frames = 0
+        frames += 1
+        # enemyx = random.choice([min(mx, enemyx- random.choice([0,1])), max(3, enemyx + random.choice([0,1]))])
         stdscr.refresh()
         time.sleep(1/30)
 
