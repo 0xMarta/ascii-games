@@ -1,143 +1,166 @@
 import curses
 import time
 import random
-def main(stdscr):
-    curses.curs_set(0)
-    stdscr.nodelay(True)
-    stdscr.keypad(True)
-    my, mx = stdscr.getmaxyx()
-    py = my // 2
-    px = mx // 2
-    score = 0
-    floor = my - 3
-    frames = 0
-    jump = 0
-    enemyx = random.randint(3,mx-3)
-    enemyy = my - 8
-    old_x = 0
-    old_y = 0
-    oldxx = 0
-    oldxy = 0
-    oldenemyx = 0
-    oldenemyy = 0
-    old_leftx = 0
-    old_lefty = 0
-    xx = 0
-    xy = 0
-    leftx = 0
-    lefty = 0
-    shot = False
-    leftshot = False
-    curses.init_pair(1,curses.COLOR_GREEN, curses.COLOR_BLACK)
-    mapa = [[0 for i in range(mx)] for j_ in range(my) ]
-    block1x = random.randint(3,mx - 3)
-    block1y = my -3  #random.randint(my - 8,my - 3)
-    block2x = random.randint(3,mx - 3)
-    block2y = random.randint(my // 3,my - 3)
-    while True:
-        stdscr.erase()
-        stdscr.border()
-        key = stdscr.getch()
-        if key == ord("a") and mapa[py][px-1] == 0:
-            px = max(2, px-1)
-        if key == ord("d") and mapa[py][px+1] == 0:
-            px = min(mx-2, px+1)
-        if key == ord(" ") and jump < 3:
-            py -= 10
-            jump += 1
-        if key == curses.KEY_RIGHT:
-            xx = px + 1
-            xy = py
-            shot = True
-        if key == curses.KEY_LEFT:
-            leftx = px - 1
-            lefty = py
-            leftshot = True
-        if key == ord("q"):
-            return
-        if mapa[py+1][px] == 0 and frames not in [0,1,2]:
-            py += 1
-        if enemyy < my-1 and mapa[enemyy+1][enemyx] == 0 and frames not in [0,1,2]:
-            enemyy += 1
-        if py == floor -1 or mapa[py+1][px] != 0:
-            jump = 0
-        mapa[enemyy][enemyx] = 5
-        mapa[block1y][block1x] = 3
-        mapa[block2y][block2x] = 3
-        mapa[floor] = [1 for n in range(mx)]
-        mapa[py][px] = 2
-        mapa[xy][xx] = 4
-        mapa[lefty][leftx] = 4
+class Game:
+    def __init__(self, stdscr):
+        self.stdscr = stdscr
+        self.quit = False
+        curses.curs_set(0)
+        self.stdscr.nodelay(True)
+        self.stdscr.keypad(True)
+        self.scene = 0
+        self.my, self.mx = stdscr.getmaxyx()
+        self.py = self.my // 2
+        self.px = self.mx // 2
+        self.score = 0
+        self.test = 0
+        self.floor = self.my - 3
+        self.frames = 0
+        self.jump = 0
+        self.hp = 100
+        self.enemyx = random.randint(3,self.mx-3)
+        self.enemyy = self.my - 8
+        self.old_x = 0
+        self.old_y = 0
+        self.oldxx = 0
+        self.oldxy = 0
+        self.oldenemyx = 0
+        self.oldenemyy = 0
+        self.old_leftx = 0
+        self.old_lefty = 0
+        self.enemy_shotx = 0
+        self.enemy_shoty = 0
+        self.enemy_shot = False
+        self.xx = 0
+        self.xy = 0
+        self.leftx = 0
+        self.lefty = 0
+        self.shot = False
+        self.leftshot = False
+        curses.init_pair(1,curses.COLOR_GREEN, curses.COLOR_BLACK)
+        self.mapa = [[0 for i in range(self.mx)] for j_ in range(self.my) ]
+        self.block1x = random.randint(3,self.mx - 3)
+        self.block1y = self.my -3
+        self.block2x = random.randint(3,self.mx - 3)
+        self.block2y = random.randint(self.my // 3,self.my - 3)
+    def scene1(self):
+        self.stdscr.erase()
+        self.stdscr.border()
+        self.stdscr.nodelay(True)
+        self.key = self.stdscr.getch()
+        if self.key == ord("a") and self.mapa[self.py][self.px-1] == 0:
+            self.px = max(2, self.px-1)
+        if self.key == ord("d") and self.mapa[self.py][self.px+1] == 0:
+            self.px = min(self.mx-2, self.px+1)
+        if self.key == ord(" ") and self.jump < 3:
+            self.py -= 10
+            self.jump += 1
+        if self.key == curses.KEY_RIGHT:
+            self.xx = self.px + 1
+            self.xy = self.py
+            self.shot = True
+        if self.key == curses.KEY_LEFT:
+            self.leftx = self.px - 1
+            self.lefty = self.py
+            self.leftshot = True
+        if self.key == ord("q"):
+            self.quit = True
+        if self.mapa[self.py+1][self.px] == 0 and self.frames not in [0,1,2]:
+            self.py += 1
+        if self.enemyy < self.my-1 and self.mapa[self.enemyy+1][self.enemyx] == 0 and self.frames not in [0,1,2]:
+            self.enemyy += 1
+        if self.py == self.floor -1 or self.mapa[self.py+1][self.px] != 0:
+            self.jump = 0
+        self.mapa[self.enemyy][self.enemyx] = 5
+        self.mapa[self.block1y][self.block1x] = 3
+        self.mapa[self.block2y][self.block2x] = 3
+        self.mapa[self.floor] = [1 for n in range(self.mx)]
+        self.mapa[self.py][self.px] = 2
+        self.mapa[self.xy][self.xx] = 4
+        self.mapa[self.lefty][self.leftx] = 4
 
-        for y in range(2,my-2):
-            for x in range(2,mx-2):
+        for y in range(2,self.my-2):
+            for x in range(2,self.mx-2):
                 try:
-                    if mapa[y][x] == 1:
-                        stdscr.addstr(y,x, "-")
-                    elif mapa[y][x] == 2:
-                        stdscr.addstr(y,x, "&")
-                    elif mapa[y][x] == 3:
-                        stdscr.addstr(y,x, "@")
-                    elif mapa[y][x] == 4:
-                        stdscr.addstr(y,x, ".")
-                    elif mapa[y][x] == 5:
-                        stdscr.addstr(y,x, "!")
+                    if self.mapa[y][x] == 1:
+                        self.stdscr.addstr(y,x, "-")
+                    elif self.mapa[y][x] == 2:
+                        self.stdscr.addstr(y,x, "&")
+                    elif self.mapa[y][x] == 3:
+                        self.stdscr.addstr(y,x, "@")
+                    elif self.mapa[y][x] == 4:
+                        self.stdscr.addstr(y,x, ".")
+                    elif self.mapa[y][x] == 5:
+                        self.stdscr.addstr(y,x, "!")
+
                 except curses.error :
                     pass
-        if shot:
-            xx += 1
-        if leftshot:
-            leftx -=1
-        if mapa[xy][min(xx + 1, mx - 1)] != 0 :
-            shot = False
-        if mapa[lefty][max(leftx - 1, 3)] != 0 :
-            leftshot = False
-        mapa[oldxy][oldxx] = 0
-        mapa[old_y][old_x] = 0
-        mapa[old_lefty][old_leftx] = 0
-        mapa[oldenemyy][oldenemyx] = 0
-        if xx == mx - 1:
-            shot = False
-        if leftx == mx - 1:
-            leftshot = False
-        if (xx, xy) == (enemyx, enemyy):
-            mapa[xy][xx] == 0
-            score += 1
-            xx = 0
-            yy = 0
-        if (leftx, lefty) == (enemyx, enemyy):
-            mapa[xy][xx] == 0
-            score += 1
-            leftx = 0
-            lefty = 0
-        oldxx = xx
-        oldxy = xy
-        old_x = px
-        old_y = py
-        old_leftx = leftx
-        old_lefty = lefty
-        oldenemyy = enemyy
-        oldenemyx = enemyx
-        if px < enemyx and frames == 3 and mapa[enemyy][enemyx -1] == 0:
-            enemyx = min(mx-3,enemyx - 1 )
-        elif px > enemyx and frames == 3 and mapa[enemyy][enemyx +1] == 0:
-            enemyx = max(3,enemyx + 1 )
-        if mapa[enemyy][enemyx +1] in [2,3,4] or mapa[enemyy][enemyx -1] in [2,3,4]:
-            enemyy -= 5
-            if mapa[enemyy][enemyx +1] in [2,3,4]:
-                enemyx = min(mx - 2, enemyx +1)
-            if mapa[enemyy][enemyx -1] in [2,3,4]:
-                enemyx = max(2, enemyx -1)
-
-        if frames == 4:
-            frames = 0
-        frames += 1
+        if self.shot:
+            self.xx += 1
+        if self.leftshot:
+            self.leftx -=1
+        if self.mapa[self.xy][min(self.xx + 1, self.mx - 1)] != 0 :
+                self.shot = False
+        if self.mapa[self.lefty][max(self.leftx - 1, 3)] != 0 :
+            self.leftshot = False
+        self.mapa[self.oldxy][self.oldxx] = 0
+        self.mapa[self.old_y][self.old_x] = 0
+        self.mapa[self.old_lefty][self.old_leftx] = 0
+        self.mapa[self.oldenemyy][self.oldenemyx] = 0
+        if self.xx == self.mx - 1:
+            self.shot = False
+        if self.leftx == self.mx - 1:
+            self.leftshot = False
+        if (self.xx, self.xy) == (self.enemyx, self.enemyy):
+            self.mapa[self.xy][self.xx] = 0
+            self.score += 1
+            self.xx = 0
+            self.xy = 0
+        if (self.leftx, self.lefty) == (self.enemyx, self.enemyy):
+            self.mapa[self.xy][self.xx] = 0
+            self.score += 1
+            self.leftx = 0
+            self.lefty = 0
+        self.oldxx = self.xx
+        self.oldxy = self.xy
+        self.old_x = self.px
+        self.old_y = self.py
+        self.old_leftx = self.leftx
+        self.old_lefty = self.lefty
+        self.oldenemyy = self.enemyy
+        self.oldenemyx = self.enemyx
+        if self.px < self.enemyx and self.frames == 3 and self.mapa[self.enemyy][self.enemyx -1] == 0:
+            self.enemyx = min(self.mx-3,self.enemyx - 1 )
+        elif self.px > self.enemyx and self.frames == 3 and self.mapa[self.enemyy][self.enemyx +1] == 0:
+            self.enemyx = max(3,self.enemyx + 1 )
+        if self.mapa[self.enemyy][self.enemyx +1] in [2,3,4] or self.mapa[self.enemyy][self.enemyx -1] in [2,3,4]:
+            self.enemyy -= 5
+            if self.mapa[self.enemyy][self.enemyx +1] in [2,3,4]:
+                self.enemyx = min(self.mx - 2, self.enemyx +1)
+                if self.mapa[self.enemyy][self.enemyx -1] in [2,3,4]:
+                    self.enemyx = max(2, self.enemyx -1)
+        if self.frames == 4:
+            self.frames = 0
+        self.frames += 1
         try:
-            stdscr.addstr(my - 5,5,f"score: {score}")
+            self.stdscr.addstr(self.my - 5,5,f"score: {self.score}")
         except curses.error:
             pass
-        stdscr.refresh()
-        time.sleep(1/30)
+        try:
+            self.stdscr.addstr(self.my - 6,5,f"test: {self.test}")
+        except curses.error:
+            pass
 
+    def run(self):
+        while True:
+                self.scene1()
+                self.stdscr.refresh()
+                time.sleep(1/30)
+                if self.quit == True:
+                    break
+
+def main(stdscr):
+    game = Game(stdscr)
+    game.run()
 
 curses.wrapper(main)
